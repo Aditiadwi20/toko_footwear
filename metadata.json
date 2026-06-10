@@ -1,0 +1,8 @@
+{
+  "name": "Toko Footwear Store",
+  "description": "Fullstack Indonesian footwear store with MySQL database support including products, categories, reviews, and transaction management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
