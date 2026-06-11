@@ -42,37 +42,41 @@ let pool: mysql.Pool | null = null;
 let dbConfig = {
   connected: false,
   type: "mock",
-  host: process.env.DB_HOST || "localhost",
-  database: process.env.DB_NAME || "db_tokofootwear",
+  host: process.env.DB_HOST || "Aiven Cloud",
+  database: process.env.DB_NAME || "defaultdb",
   error: ""
 };
 
 // Lazy initialize MySQL Connection Pool
-async function getDbConnection() {
-  const useExternal = process.env.DB_USE_EXTERNAL === "true";
-  
-  if (!useExternal) {
-    dbConfig.connected = false;
-    dbConfig.type = "mock";
-    dbConfig.error = "External DB is disabled in config (DB_USE_EXTERNAL is not 'true')";
-    return null;
-  }
-
+async function getDbConnection(): Promise<mysql.Pool | null> {
   if (pool) return pool;
 
   try {
-    pool = mysql.createPool({
-      host: process.env.DB_HOST || "localhost",
-      port: Number(process.env.DB_PORT) || 3306,
-      user: process.env.DB_USER || "root",
-      password: process.env.DB_PASSWORD || "",
-      database: process.env.DB_NAME || "db_tokofootwear",
-      waitForConnections: true,
-      connectionLimit: 10,
-      queueLimit: 0
-    });
+    if (process.env.DATABASE_URL) {
+      // Koneksi untuk Aiven MySQL di Vercel
+      pool = mysql.createPool({
+        uri: process.env.DATABASE_URL,
+        waitForConnections: true,
+        connectionLimit: 5,
+        queueLimit: 0
+      });
+    } else {
+      // Cadangan koneksi untuk Localhost di komputer Anda
+      pool = mysql.createPool({
+        host: process.env.DB_HOST || "localhost",
+        port: Number(process.env.DB_PORT) || 3306,
+        user: process.env.DB_USER || "root",
+        password: process.env.DB_PASSWORD || "",
+        database: process.env.DB_NAME || "db_tokofootwear",
+        waitForConnections: true,
+        connectionLimit: 5,
+        queueLimit: 0
+      });
+    }
 
-    // Test connection
+    // Mengamankan TypeScript agar tahu 'pool' pasti tidak bernilai null di baris ini
+    if (!pool) return null;
+
     const conn = await pool.getConnection();
 
     // Auto-adjust column to support Base64 file uploads if column is cramped
